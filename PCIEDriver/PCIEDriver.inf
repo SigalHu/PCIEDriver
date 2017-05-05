@@ -1,0 +1,102 @@
+;
+; PCIEDriver.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=PCIESample ; TODO: edit Class
+ClassGuid={93E95EEF-AB6A-4C9C-807B-C7828D205BB5} ; TODO: edit ClassGuid
+Provider=%ManufacturerName%
+CatalogFile=PCIEDriver.cat
+DriverVer=27/10/2016,6.1.7600.16385 ; TODO: set DriverVer in stampinf property pages
+
+[DestinationDirs]
+DefaultDestDir = 12
+
+; ================= Class section =====================
+
+[ClassInstall32]
+Addreg=SampleClassReg
+
+[SampleClassReg]
+HKR,,,0,%ClassName%
+HKR,,Icon,,-5
+HKR,,DeviceCharacteristics,0x10001,0x100     ;Use same security checks on relative opens
+HKR,,Security,,"D:P(A;;GA;;;SY)(A;;GA;;;BA)" ;Allow generic all access to system and built-in Admin.
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+PCIEDriver.sys  = 1,,
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[ControlFlags]
+ExcludeFromSelect=*
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%PCIEDriver.DeviceDesc%=PCIEDriver_Device, PCI\VEN_10ee&DEV_6024 ; TODO: edit hw-id
+
+[PCIEDriver_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+PCIEDriver.sys
+
+;-------------- Service installation
+[PCIEDriver_Device.NT.Services]
+AddService = PCIEDriver,%SPSVCINST_ASSOCSERVICE%, PCIEDriver_Service_Inst
+
+; -------------- PCIEDriver driver install sections
+[PCIEDriver_Service_Inst]
+DisplayName    = %PCIEDriver.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\PCIEDriver.sys
+LoadOrderGroup = Extended Base
+AddReg         = PCIEDriver_Parameters_AddReg
+
+[PCIEDriver_Parameters_AddReg]
+HKR, Parameters\Wdf, VerboseOn,       0x00010001, 1
+HKR, Parameters\Wdf, VerifierOn,      0x00010001, 1
+HKR, Parameters\Wdf, DbgBreakOnError, 0x00010001, 1
+
+;
+;--- PCIEDriver_Device Coinstaller installation ------
+;
+
+[DestinationDirs]
+PCIEDriver_Device_CoInstaller_CopyFiles = 11
+
+[PCIEDriver_Device.NT.CoInstallers]
+AddReg=PCIEDriver_Device_CoInstaller_AddReg
+CopyFiles=PCIEDriver_Device_CoInstaller_CopyFiles
+
+[PCIEDriver_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[PCIEDriver_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[SourceDisksFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+[PCIEDriver_Device.NT.Wdf]
+KmdfService =  PCIEDriver, PCIEDriver_wdfsect
+[PCIEDriver_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="SigalHu" ; TODO: add ManufacturerName
+ClassName="PCIESamples" ; TODO: edit ClassName
+DiskName = "PCIE Device Installation Disk"
+PCIEDriver.DeviceDesc = "PCIE Device"
+PCIEDriver.SVCDESC = "PCIE Device"
