@@ -9,3 +9,5 @@
 * PCIEDriverTest工程：PCIE驱动测试软件，对PCIEDriver工程生成的PCIE驱动进行测试
 ## 实现功能
 支持中断、寄存器读写与DMA传输等操作
+## DMA传输
+![image](https://github.com/SigalHu/PCIEDriver/raw/master/img/DMA写操作.png)
